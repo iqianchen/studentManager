@@ -3,16 +3,15 @@ let svgCaptcha = require("svg-captcha");
 let bodyParser = require('body-parser')
 let path = require("path");
 var session = require('express-session')
-// const MongoClient = require('mongodb').MongoClient;
-let tools = require("./tools/myTools.js");
 
-// mongodb需要的url和库名
-// const url = 'mongodb://localhost:27017';
-// const dbName = 'test';
+let tools = require("./tools/myTools.js");
+let indexRoute = require(path.join(__dirname,"/route/indexRoute.js"))
+
 
 let app = express();
 // 设置静态资源托管
 app.use(express.static("static"));
+// app.use('/index',indexRoute);
 // 使用bodyParser中间件
 app.use(bodyParser.urlencoded({ extended: false }))
 // 使用session中间件
@@ -22,6 +21,11 @@ app.use(session({
     // saveUninitialized: true,
     // cookie: { secure: true }
 }))
+// 挂载首页路由
+app.use('/index',indexRoute);
+
+app.engine('html', require('express-art-template'));
+app.set('views', '../static/views/')
 
 // 读取登录页面
 app.get('/login',(req,res)=>{
@@ -39,21 +43,13 @@ app.get("/update",(req,res)=>{
     res.sendFile(path.join(__dirname,"/static/views/update.html"))
 })
 
-// 读取登录页
-app.get("/index",(req,res)=>{
-    if (req.session.userInfo){
-        res.sendFile(path.join(__dirname,"/static/views/index.html"))
-    }else{
-        tools.mess(res,"请先登录","/login");
-    }
-})
-
 // 退出登录
 app.get('/logout',(req,res)=>{
     delete req.session.userInfo;
     res.redirect("/login");
 })
 
+// 获取验证码
 app.get("/login/captchaImg",(req,res)=>{
     var captcha = svgCaptcha.create();
     req.session.captcha = captcha.text;  
@@ -85,7 +81,7 @@ app.post("/login",(req,res)=>{
                 if (password == doc[0].password){
                     // 登录成功 跳转页面
                     // 记录用户信息
-                    req.session.userInfo = "true";
+                    req.session.userInfo = {userName};
                     tools.mess(res,"登录成功","/index")
                 }else{
                     tools.mess(res,"密码错误","/login")

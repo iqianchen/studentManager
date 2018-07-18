@@ -2,7 +2,7 @@ let express = require("express");
 const MongoClient = require('mongodb').MongoClient;
 
 // mongodb需要的url和库名
-const url = 'mongodb://localhost:27017';
+const url = 'mongodb://127.0.0.1:27017';
 const dbName = 'test';
 
 module.exports = {
@@ -64,7 +64,7 @@ module.exports = {
     update(documents,query,doc,callback){
         MongoClient.connect(url,{ useNewUrlParser: true },(err,client)=>{
             let db = client.db(dbName);
-            db.collection(documents).updateOne(query,{$set:doc},(err,client)=>{
+            db.collection(documents).updateOne(query,{$set:doc},(err,result)=>{
                 callback(err,result);
                 client.close();
             })
@@ -78,9 +78,9 @@ module.exports = {
      * @param {function} callback 
      */
     delete(documents,query,callback){
-        Mongoclient.connect(url,{ useNewUrlParser: true },(err,client)=>{
+        MongoClient.connect(url,{ useNewUrlParser: true },(err,client)=>{
             let db = client.db(dbName);
-            db.collection(documents).delectOne(query,(err,resutl)=>{
+            db.collection(documents).deleteOne(query,(err,result)=>{
                 callback(err,result);
                 client.close();
             })
